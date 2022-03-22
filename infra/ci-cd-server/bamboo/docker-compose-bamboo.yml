@@ -1,0 +1,66 @@
+version: '3.8'
+services:
+  # Bamboo server where are configured and executed all of CI and CD tasks
+  bamboo-server:
+    container_name: bamboo-server
+    image: atlassian/bamboo-server:7.2
+    volumes:
+      - "~/containers/common-files:/var/common-files"
+      - "~/containers/bamboo/server/application-data/home:/var/atlassian/application-data/bamboo/home"
+      - "~/containers/bamboo/server/application-data/shared/artifacts:/var/atlassian/application-data/bamboo/shared/artifacts"
+      - "~/containers/bamboo/server/application-data/shared/builds:/var/atlassian/application-data/bamboo/shared/builds"
+      - "~/containers/bamboo/server/application-data/shared/configuration:/var/atlassian/application-data/bamboo/shared/configuration"
+      - "~/containers/bamboo/server/application-data/shared/repository-specs:/var/atlassian/application-data/bamboo/shared/repository-specs"
+      - "~/containers/bamboo/server/application-data/shared/index:/var/atlassian/application-data/bamboo/shared/index"
+      - "~/containers/bamboo/server/application-data/shared/backups:/var/atlassian/application-data/bamboo/shared/backups"
+    networks:
+      - bamboo-network
+    ports:
+      - "2801:8085"
+      - "54663:54663"
+  # Bamboo remote agent where executed all of build, test and deploy tasks for nodejsJS applications
+  bamboo-agent-nodejs:
+    container_name: bamboo-agent-nodejs
+    image: atlassian/bamboo-agent-base:latest
+    environment:
+      - BAMBOO_SERVER="http://bamboo.mycompany.com/agentServer/"
+      - IGNORE_SERVER_CERT_NAME="true"
+    volumes:
+      - "~/containers/bamboo/agent/nodejs/application-data/home:/var/atlassian/application-data/bamboo/home"
+    networks:
+      - bamboo-network
+  # Bamboo remote agent where executed all of build, test and deploy tasks for Java applications
+  bamboo-agent-java:
+    container_name: bamboo-agent-java
+    image: atlassian/bamboo-agent-base:latest
+    environment:
+      - BAMBOO_SERVER="http://bamboo.mycompany.com/agentServer/"
+      - IGNORE_SERVER_CERT_NAME="true"
+    volumes:
+      - "~/containers/bamboo/agent/java/application-data/home:/var/atlassian/application-data/bamboo/home"
+    networks:
+      - bamboo-network
+  # Bamboo remote agent where executed all of build, test and deploy tasks for Android applications
+  bamboo-agent-android:
+    container_name: bamboo-agent-android
+    image: atlassian/bamboo-agent-base:latest
+    environment:
+      - BAMBOO_SERVER="http://bamboo.mycompany.com/agentServer/"
+      - IGNORE_SERVER_CERT_NAME="true"
+    volumes:
+      - "~/containers/bamboo/agent/android/application-data/home:/var/atlassian/application-data/bamboo/home"
+    networks:
+      - bamboo-network
+  # Bamboo database where are stored all of data of Bamboo CI and CD plans
+  bamboo-database:
+    container_name: bamboo-database
+    image: mysql:8-oracle
+    environment:
+      MYSQL_DATABASE: bamboo-database
+      MYSQL_USER: bamboo-database-admin
+      MYSQL_ROOT_PASSWORD: bamboo-database-admin-passowrd
+    networks:
+      - bamboo-network
+networks:
+  bamboo-network:
+    name: bamboo-network
